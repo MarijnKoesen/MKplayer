@@ -19,7 +19,7 @@ To install the player unpack the files on your server and create a html file lik
 <link rel="stylesheet" type="text/css" media="all" href="/MKplayer/css/MKplayer.min.css" />
 <script type="text/javascript" src="/MKplayer/js/MKplayer.min.js"></script>
 
-<script>
+<script type="text/javascript">
 window.onload = function() {
     player = new MK.Player();
 
@@ -51,7 +51,7 @@ window.onload = function() {
     player.shuffle = false;
 }
 </script>
-```html
+```
 
 ### Authors and Contributors
 
