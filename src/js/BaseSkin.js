@@ -95,7 +95,7 @@
                         {n: 'div', a: {class: "minimize"}}
                     ]}},
                     {n: 'div', a: {class: "body-left"}},
-                    {n: 'div', a: {class: "body-content"}, c: [
+                    {n: 'div', a: {class: "body-content"}, e: { click: this.clickSong.bind(this)}, c: [
                         {n: 'table', a: {cellSpacing: 0}}
                     ]},
                     {n: 'div', a: {class: "body-right"}},
@@ -147,10 +147,18 @@
         redrawPlaylist: function() {
             this.playlistWindowContent.innerHTML = '';
 
+            var table = MK.HtmlBuilder().build({n: 'table', a: {cellSpacing: 0}});
+
             var i = 0, song;
             while ((song = this.player.playlist[i++])) {
-                this.playlistWindowContent.appendChild(this.createSongRow(song, i));
+                table.appendChild(this.createSongRow(song, i));
             }
+
+            if (this.playlistWindowContent.parentNode)
+                this.playlistWindowContent.parentNode.removeChild(this.playlistWindowContent);
+
+            this.playlistWindow.getElementsByClassName('body-content')[0].appendChild(table);
+            this.playlistWindowContent = table;
         },
 
         /**
@@ -294,10 +302,18 @@
          * @param rowNumber int The number of the row
          */
         createSongRow: function(song, rowNumber) {
+            /**
+             * Because we're using tr/td we can't use ellipsis as that needs a block element.
+             * In the past I've embedded a div in the name td which had the ellipsis, but this
+             * greatly reduces performance when you have a large playlist.
+             * This was the difference between snappy and sluggish, so I've decided to not use ellipsis anymore..
+             * Maybe this is fixable by not using a table, but using divs, but this need to be checked with a big
+             * playlist (100k+ items)
+             */
             return MK.HtmlBuilder().build(
-                {n: 'tr', a: {row: rowNumber-1}, e: { click: this.clickSong.bind(this)}, c: [
+                {n: 'tr', a: {row: rowNumber-1}, c: [
                     {n: 'td', a: { class: 'r'}, t: rowNumber + "."},
-                    {n: 'td', a: { class: 'n'}, c: [{n: 'div', t: song.getFullName()}]},
+                    {n: 'td', a: { class: 'n'}, t: song.getFullName()},
                     {n: 'td', a: { class: 'd'}, t: song.getDuration()}
                 ]}
             );

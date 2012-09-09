@@ -1,18 +1,8 @@
 * {
 	font-family: verdana;
 	font-size: 11px;
+
 }
-
-.window {
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-o-user-select: none;
-}
-
-
-
-
 
 #mainWindow {
 	border: 1px solid #ccc;
@@ -22,6 +12,20 @@
 	border-bottom-right-radius: 0px;
 	width: 500px;
 	height: 200px;
+
+	/*
+	 * DO NOT! set user-select:none on the playlist window, ONLY set it on (specific) other windows.
+	 * Chrome has a bug (?) that makes clicking anywhere on the page really slow if you set user-select
+	 * on an element with a lot of child nodes.. even if you click outside the element.
+	 * If you'd set user-select:none on .window for example, clicking anywhere (on a button, on a song, outside the player etc)
+	 * lets the browser hang for about 10 seconds when you have 125k songs loaded. If you only set it on #mainwindow
+	 * there is no problem and everything remeans fast.
+	 */
+	user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
 }
 
 #mainWindow .controls {
@@ -109,6 +113,10 @@
 	cursor: pointer;
 }
 
+#playlistWindow tr {
+	vertical-align: top;
+}
+
 #playlistWindow tr:hover,
 #playlistWindow tr.currentlyPlaying td
 {
@@ -119,14 +127,7 @@
 	width: 30px;
 }
 
-#playlistWindow .n div {
-	width: 700px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
 #playlistWindow .d {
 	width: 40px;
 	text-align: right;
 }
-

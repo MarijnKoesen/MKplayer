@@ -1,6 +1,7 @@
 (function(MK) {
     MK.Player = function(options) {
-        this.playlist = [];
+        this.playlist = []; // The playlist
+        this.playlistLoadQueue = []; // Queue with songs to add to the player
         this.playQueue = []; // Queue with songs to play first
 
         // The current playing song object
@@ -28,6 +29,18 @@
     }
 
     MK.extend(MK.Player.prototype, {
+        /**
+         * Add an array of songs to the player
+         *
+         * @param songs array of songs
+         */
+        addSongs: function(songs) {
+            var song, i = 0;
+            while ((song = songs[i++])) {
+                this.addSong(song);
+            }
+        },
+
         /**
          * Add a song to the playlist
          *
@@ -251,15 +264,44 @@
          * @param xhrResult
          */
         _doAppendPlaylist: function (xhrResult) {
+            // When loading a playlist of say 100k items it would take some time, in the meantime the browser would 'hang'
+            // if we were to load a playlist in one go.
+            // To fix this we add everything to a queue and then add managable groups, this avoids a hanging browser.
             var songs = eval(xhrResult.responseText);
 
             var i = 0, song;
             while ((song = songs[i++])) {
-                this.addSong(new MK.Song(song));
+                this.playlistLoadQueue.push(song);
             }
 
-            this.eventRegistry.broadcast('playlistLoaded');
+            this._loadSongsFromQueue();
         },
+
+        /**
+         * Load a number of songs from the queue to prevent the browser from hanging
+         *
+         * @private
+         */
+        _loadSongsFromQueue: function() {
+            if (this.playlistLoadQueue.length) {
+                var doNow = this.playlistLoadQueue.splice(0, 10000)
+                var songs = [], i = 0;
+
+                while((song = doNow[i++])) {
+                    songs.push(new MK.Song(song));
+                }
+
+                this.addSongs(songs);
+            }
+
+            // Keep loading until we've added the whole queue
+            if (this.playlistLoadQueue.length) {
+                setTimeout(this._loadSongsFromQueue.bind(this), 100);
+            } else {
+                this.eventRegistry.broadcast('playlistLoaded');
+            }
+        },
+
 
         /**
          * Private handler that is called when a playing song has ended

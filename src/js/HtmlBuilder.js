@@ -37,7 +37,12 @@
             }
 
             if ('t' in node) {
-                element.innerText = node.t;
+                if (document.all)
+                    // Webkit
+                    element.innerText = node.t;
+                else
+                    // Firefox
+                    element.textContent = node.t;
             }
 
             if ('c' in node) {
