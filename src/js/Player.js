@@ -50,6 +50,9 @@
          * @param playlistIndex int The playlist position to play
          */
         play: function(playlistIndex) {
+            if (!this.playlist.length)
+                return false;
+
             if (this.playlist[playlistIndex]) {
                 // Play the requested song
                 if (this.currentSong != this.playlist[playlistIndex])
@@ -128,6 +131,9 @@
         },
 
         previous: function() {
+            if (!this.playlist.length)
+                return false;
+
             if (this.playQueue.length) {
                 // The queued songs have priority over everything else
                 // But make sure the songs still exists and has not been deleted from the playlist in the meantime
