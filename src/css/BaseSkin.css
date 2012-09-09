@@ -1,0 +1,132 @@
+* {
+	font-family: verdana;
+	font-size: 11px;
+}
+
+.window {
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
+}
+
+
+
+
+
+#mainWindow {
+	border: 1px solid #ccc;
+	border-bottom: 0px;
+	border-radius: 3px;
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 0px;
+	width: 500px;
+	height: 200px;
+}
+
+#mainWindow .controls {
+	margin-top: 5px;
+}
+
+#mainWindow .body-content {
+	overflow: auto;
+	vertical-align: bottom;
+}
+
+#mainWindow .body-content div {
+	display: inline-block;
+	padding: 7px;
+}
+
+#mainWindow .label {
+	width: 50px;
+	overflow: auto;
+	text-align: right;
+}
+
+#mainWindow .artist,
+#mainWindow .title,
+#mainWindow .album {
+	margin-top: 10px;
+	display: inline-block;
+	width: 400px;
+	border: 1px solid #eee;
+}
+
+.button {
+	margin-right: 13px;
+	border-radius: 3px;
+	border: 1px solid #eee;
+	background: #f8f8f8;
+	width: auto;
+	cursor: pointer;
+}
+
+.button:hover {
+	background: #f0f0f0;
+}
+
+.button:last-child {
+	margin-right: 0;
+}
+
+#mainWindow .seek {
+	margin-top: 10px;
+	margin-left: 10px;
+	width: 370px;
+}
+#mainWindow .volume {
+	margin-top: 10px;
+	margin-right: 20px;
+	float: right;
+	width: 80px;
+}
+
+
+
+
+#playlistWindow {
+	background: white;
+	width: 800px;
+	min-height: 20px;
+	max-height: 500px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	border-top-left-radius: 0px;
+	overflow: auto;
+	overflow-x: hidden;
+}
+#playlistWindow td {
+	padding: 4px;
+	border-bottom: 1px solid #ccc;
+}
+
+#playlistWindow .body-content div {
+	float: left;
+}
+
+#playlistWindow td {
+	cursor: pointer;
+}
+
+#playlistWindow tr:hover,
+#playlistWindow tr.currentlyPlaying td
+{
+	background: #f0f0f0;
+}
+
+#playlistWindow td.r {
+	width: 30px;
+}
+
+#playlistWindow .n div {
+	width: 700px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+#playlistWindow .d {
+	width: 40px;
+	text-align: right;
+}
+
