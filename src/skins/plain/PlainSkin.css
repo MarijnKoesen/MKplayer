@@ -1,0 +1,125 @@
+* {
+	font-family: verdana;
+	font-size: 11px;
+}
+
+.window.main {
+	background: white;
+	border: 1px solid #ccc;
+	border-bottom: 0px;
+	border-radius: 3px;
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 0px;
+	width: 500px;
+	height: 225px;
+}
+
+.window.main .controls {
+	margin-top: 5px;
+}
+
+.window.main .body-content {
+	overflow: auto;
+	vertical-align: bottom;
+}
+
+.window.main .body-content div {
+	display: inline-block;
+	padding: 7px;
+}
+
+.window.main .label {
+	width: 50px;
+	overflow: auto;
+	text-align: right;
+}
+
+.window.main .artist,
+.window.main .title,
+.window.main .album {
+	margin-top: 10px;
+	display: inline-block;
+	width: 400px;
+	border: 1px solid #eee;
+}
+
+.button {
+	margin-right: 12px;
+	border-radius: 3px;
+	border: 1px solid #eee;
+	background: #f8f8f8;
+	width: auto;
+	cursor: pointer;
+}
+
+.button:hover {
+	background: #f0f0f0;
+}
+
+.button:last-child {
+	margin-right: 0;
+}
+
+.window.main .seek {
+	margin-top: 10px;
+	margin-left: 10px;
+	width: 290px;
+}
+.window.main .volumeSlider {
+	padding:  7px;;
+	margin-top: 10px;
+	margin-right: 20px;
+	float: right;
+	width: 60px;
+}
+
+
+
+
+.window.playlist {
+	background: white;
+	width: 500px;
+	min-height: 300px;
+	max-height: 500px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+	overflow: auto;
+	overflow-x: hidden;
+}
+.window.playlist td {
+	padding: 4px;
+	border-bottom: 1px solid #ccc;
+}
+
+.window.playlist .body-content div {
+	float: left;
+}
+
+.window.playlist td {
+	cursor: pointer;
+}
+
+.window.playlist tr {
+	vertical-align: top;
+}
+
+.window.playlist tr:hover,
+.window.playlist tr.currentlyPlaying td
+{
+	background: #f0f0f0;
+}
+
+.window.playlist td.r {
+	width: 30px;
+}
+
+.window.playlist td.n {
+	width: 400px;
+}
+
+.window.playlist .d {
+	width: 40px;
+	text-align: right;
+}

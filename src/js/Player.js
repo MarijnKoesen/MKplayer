@@ -1,5 +1,29 @@
 (function(MK) {
     MK.Player = function(options) {
+        this.EVENTS = [
+            'play', // fired when a the player starts to play a new song
+            'playing', // fired every second while the player is playing
+            'stop', // fired when the player stops playing the current song
+            'pause', // fired when the player is paused
+            'songAdded',
+            'playlistLoaded',
+            'volumeChanged',
+            'songChanged',
+            'repeatStateChanged'
+        ];
+
+        this.PLAYING_STATES = {
+            STOPPED: 'STOPPED',
+            PLAYING: 'PLAYING',
+            PAUSED: 'PAUSED'
+        };
+
+        this.REPEAT_STATES = {
+            REPEAT_NONE: 'REPEAT_NONE',
+            REPEAT_ONE: 'REPEAT_ONE',
+            REPEAT_ALL: 'REPEAT_ALL'
+        };
+
         this.playlist = []; // The playlist
         this.playlistLoadQueue = []; // Queue with songs to add to the player
         this.playQueue = []; // Queue with songs to play first
@@ -7,23 +31,13 @@
         // The current playing song object
         this.currentSong = null;
 
-        this.playing = false;
-        this.repeat = true;
+        this.playingState = this.PLAYING_STATES.STOPPED;
+        this.repeatState = this.REPEAT_STATES.REPEAT_ALL;
         this.shuffle = false;
 
         this.volume = 1; // min: 0, max: 1
 
         this.eventRegistry = new MK.EventRegistry();
-
-        this.EVENTS = [
-            'play', // fired when a the player starts to play a new song
-            'playing', // fired every second while the player is playing
-            'stop', // fired when the player stops playing the current song
-            'pause',
-            'songAdded',
-            'playlistLoaded',
-            'volumeChanged'
-        ];
 
         this._init();
     }
@@ -66,21 +80,26 @@
             if (!this.playlist.length)
                 return false;
 
-            if (this.playlist[playlistIndex]) {
-                // Play the requested song
-                if (this.currentSong != this.playlist[playlistIndex])
-                    this.audioEngine.src = this.playlist[playlistIndex].url;
+            if (playlistIndex === undefined)
+                playlistIndex = this.getCurrentSongIndex();
 
-                this.currentSong = this.playlist[playlistIndex];
-                this.playing = true;
+            // First check if we got a valid song index passed
+            var newSong = this.playlist[playlistIndex];
+            if (newSong) {
+                // Song found, play the requested song
+                if (this.currentSong != newSong) {
+                    this.audioEngine.src = newSong.url;
+                    this.eventRegistry.broadcast('songChanged', newSong);
+                } else if (this.playingState != this.PLAYING_STATES.PAUSED) {
+                    // If we we're paused we don't want the song to start from the beginning
+                    this.audioEngine.currentTime = 0;
+                }
+
+                this.currentSong = newSong;
+                this.playingState = this.PLAYING_STATES.PLAYING;
                 this.audioEngine.play();
 
                 this.eventRegistry.broadcast("play", this.currentSong);
-            } else {
-                // If we add a click event to a button and let the click event call this function we'll get an event passed
-                // as playlistIndex, so treat that as having passed nothing at all and play the current song from the beginning
-                this.stop();
-                this.play(this.getCurrentSongIndex());
             }
         },
 
@@ -88,15 +107,16 @@
          * Stop playback of the current song
          */
         stop: function() {
-            if (this.playing) {
+            if (this.playingState == this.PLAYING_STATES.PLAYING) {
                 this.audioEngine.pause();
+
                 if (this.audioEngine.currentTime)
                     this.audioEngine.currentTime = 0;
-
-                this.eventRegistry.broadcast("stop", this.currentSong);
             }
 
-            this.playing = false;
+            this.playingState = this.PLAYING_STATES.STOPPED;
+
+            this.eventRegistry.broadcast('stop', this.currentSong);
         },
 
         /**
@@ -104,7 +124,9 @@
          */
         pause: function() {
             this.audioEngine.pause();
-            this.playing = false;
+            this.playingState = this.PLAYING_STATES.PAUSED;
+
+            this.eventRegistry.broadcast("pause");
         },
 
         /**
@@ -120,7 +142,9 @@
             if (!this.playlist.length)
                 return false;
 
-            if (this.playQueue.length) {
+            if (this.repeatState == this.REPEAT_STATES.REPEAT_ONE) {
+                this.play(this.getCurrentSongIndex());
+            } else if (this.playQueue.length) {
                 // The queued songs have priority over everything else
                 // But make sure the songs still exists and has not been deleted from the playlist in the meantime
                 var song = this.playQueue.shift(), songIndex;
@@ -134,10 +158,9 @@
             } else {
                 // Just play the next song, if we got any, if there's not a next song start over at the first song, if we're on repeat
                 var nextSongIndex = this.getCurrentSongIndex() + 1;
-                var nextSong = this.playlist[nextSongIndex];
-                if (nextSong) {
+                if (this.playlist[nextSongIndex]) {
                     this.play(nextSongIndex);
-                } else if (this.repeat) {
+                } else if (this.repeatState == this.REPEAT_STATES.REPEAT_ALL) {
                     this.play(0);
                 }
             }
@@ -147,7 +170,9 @@
             if (!this.playlist.length)
                 return false;
 
-            if (this.playQueue.length) {
+            if (this.repeatState == this.REPEAT_STATES.REPEAT_ONE) {
+                this.play(this.getCurrentSongIndex());
+            } else if (this.playQueue.length) {
                 // The queued songs have priority over everything else
                 // But make sure the songs still exists and has not been deleted from the playlist in the meantime
                 var song = this.playQueue.shift(), songIndex;
@@ -161,10 +186,9 @@
             } else {
                 // Just play the next song, if we got any, if there's not a next song start over at the first song, if we're on repeat
                 var previousSongIndex = this.getCurrentSongIndex() - 1;
-                var previousSong = this.playlist[previousSongIndex];
-                if (previousSong) {
+                if (this.playlist[previousSongIndex]) {
                     this.play(previousSongIndex);
-                } else if (this.repeat) {
+                } else if (this.repeatState == this.REPEAT_STATES.REPEAT_ALL) {
                     this.play(this.playlist.length-1);
                 }
             }
@@ -188,7 +212,10 @@
         },
 
         seek: function(time) {
-            this.audioEngine.currentTime = time;
+            if (time >= 0)
+                this.audioEngine.currentTime = time;
+            else
+                this.audioEngine.currentTime = 0;
         },
 
         /**
@@ -222,6 +249,13 @@
             this.appendPlaylist(url);
         },
 
+        setRepeatState: function(repeatState) {
+            if (repeatState in this.REPEAT_STATES) {
+                this.repeatState = repeatState;
+                this.eventRegistry.broadcast('repeatStateChanged', this.repeatState);
+            }
+        },
+
         /**
          * Add an eventlistener to the player
          *
@@ -251,7 +285,7 @@
          * Private: Broadcast our current playing position every 250 msec
          */
         _broadcastPlayingEvent: function() {
-            if (this.playing) {
+            if (this.playingState == this.PLAYING_STATES.PLAYING) {
                 this.eventRegistry.broadcast('playing', {song: this.currentSong, currentTime: this.audioEngine.currentTime});
             }
 
@@ -288,7 +322,8 @@
                 var songs = [], i = 0;
 
                 while((song = doNow[i++])) {
-                    songs.push(new MK.Song(song));
+                    if (MK.parseLengthToSeconds(song.length) > 0)
+                        songs.push(new MK.Song(song));
                 }
 
                 this.addSongs(songs);
@@ -307,7 +342,7 @@
          * Private handler that is called when a playing song has ended
          */
         _onSongEnded: function() {
-            this.playing = false;
+            this.playingState = this.PLAYING_STATES.STOPPED;
             this.next();
         }
     });

@@ -1,26 +1,31 @@
 (function(MK) {
-    MK.BaseSkin = function(player) {
+    MK.PlainSkin = function(player) {
         this.player = player;
 
-        this.mainWindow;
-        this.mainWindowArtistLabel;
-        this.mainWindowTitleLabel;
-        this.mainWindowAlbumLabel;
+        this.mainWindow = null;
+        this.mainWindowArtistLabel = null;
+        this.mainWindowTitleLabel = null;
+        this.mainWindowAlbumLabel = null;
 
-        this.playlistWindow;
-        this.playlistWindowContent;
+        this.playlistWindow = null;
+        this.playlistWindowContent = null;
+        this.playlistWindow = null;
 
-        this.playlistWindow;
-        this.searchWindow;
-
-        this.init();
+        this.playButton = null;
+        this.repeatButton = null;
+        this.shuffleButton = null;
+        this.seeker = null;
+        this.volumeSlider = null;
+        this.currentTimeLabel = null;
+        this.totalTimeLabel = null;
     }
 
-    MK.extend(MK.BaseSkin.prototype, {
+    MK.extend(MK.PlainSkin.prototype, {
         init: function() {
+            this._disableElementSelection();
             this.createWindows();
+            this.initializeElements();
             this.registerEvents();
-
             this.redrawPlaylist();
         },
 
@@ -28,18 +33,35 @@
          * Create and initialize the windows, then append them to the body
          */
         createWindows: function() {
+            // Create the mainWindow
             this.mainWindow = this.createMainWindow();
+            document.body.appendChild(this.mainWindow);
+
+            // Create the playlistWindow
+            this.playlistWindow = this.createPlaylistWindow();
+            document.body.appendChild(this.playlistWindow);
+        },
+
+        /**
+         * Initialize all the elements and assign the element references as class vars
+         */
+        initializeElements: function() {
             this.mainWindowArtistLabel = this.mainWindow.getElementsByClassName('artist')[0];
             this.mainWindowTitleLabel = this.mainWindow.getElementsByClassName('title')[0];
             this.mainWindowAlbumLabel = this.mainWindow.getElementsByClassName('album')[0];
+            this.playButton = this.mainWindow.getElementsByClassName('play')[0];
+            this.repeatButton = this.mainWindow.getElementsByClassName('repeat')[0];
+            this.shuffleButton = this.mainWindow.getElementsByClassName('shuffle')[0];
+            this.seeker = this.mainWindow.getElementsByClassName('seek')[0];
+            this.volumeSlider = this.mainWindow.getElementsByClassName('volumeSlider')[0];
+            this.currentTimeLabel = this.mainWindow.getElementsByClassName('currentTime')[0];
+            this.totalTimeLabel = this.mainWindow.getElementsByClassName('totalTime')[0];
+            this.playlistWindowContent = this.playlistWindow.getElementsByTagName('table')[0];
+
+            this.volumeSlider.value = this.player.volume;
+
             this.styleRepeatButton();
             this.styleShuffleButton();
-            this.mainWindow.getElementsByClassName('volume')[0].value = this.player.volume;
-            document.body.appendChild(this.mainWindow);
-
-            this.playlistWindow = this.createPlaylistWindow();
-            this.playlistWindowContent = this.playlistWindow.getElementsByTagName('table')[0];
-            document.body.appendChild(this.playlistWindow);
         },
 
         /**
@@ -49,27 +71,31 @@
          */
         createMainWindow: function() {
             return MK.HtmlBuilder().build(
-                {n: 'div', a: {'id': 'mainWindow', class: 'window'}, c: [
-                    {n: 'div', a: {class: "header", c: [
+                {n: 'div', a: {class: 'window main'}, c: [
+                    {n: 'div', a: {class: "header"}, c: [
                         {n: 'div', a: {class: "minimize"}}
-                    ]}},
+                    ]},
                     {n: 'div', a: {class: "body-left"}},
                     {n: 'div', a: {class: "body-content"}, c: [
-                        {n: 'div', a: {class: "label"}, t: "Artist"},
-                        {n: 'div', a: {class: "artist"}, t: String.fromCharCode(160)},
-
                         {n: 'div', a: {class: "label"}, t: "Title"},
                         {n: 'div', a: {class: "title"}, t: String.fromCharCode(160)},
+
+                        {n: 'div', a: {class: "label"}, t: "Artist"},
+                        {n: 'div', a: {class: "artist"}, t: String.fromCharCode(160)},
 
                         {n: 'div', a: {class: "label"}, t: "Album"},
                         {n: 'div', a: {class: "album"}, t: String.fromCharCode(160)},
 
-                        {n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {change: this.seek.bind(this)}},
-                        {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.05, class: "volume"}, e: {change: this.changeVolume.bind(this)}},
+                        {n: 'div', a: {class: "progress"}, c: [
+                            {n: 'div', a: {class: "currentTime"}, t: "0:00"},
+                            {n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {change: this.seek.bind(this)}},
+                            {n: 'div', a: {class: "totalTime"}, t: "0:00"}
+                        ]},
+                        {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.05, class: "volumeSlider"}, e: {change: this.changeVolume.bind(this)}},
 
                         {n: 'div', a: {class: "controls"}, c: [
                             {n: 'div', a: {class: "button previous"}, t: "Previous", e: { click: this.clickPrevious.bind(this)}},
-                            {n: 'div', a: {class: "button play"}, t: "Play", e: { click: this.player.play.bind(this.player)}},
+                            {n: 'div', a: {class: "button play"}, t: "Play", e: { click: this.clickPlay.bind(this)}},
                             {n: 'div', a: {class: "button pause"}, t: "Pause", e: { click: this.player.pause.bind(this.player)}},
                             {n: 'div', a: {class: "button stop"}, t: "Stop", e: { click: this.player.stop.bind(this.player)}},
                             {n: 'div', a: {class: "button next"}, t: "Next", e: { click: this.clickNext.bind(this)}},
@@ -90,7 +116,7 @@
          */
         createPlaylistWindow: function() {
             return MK.HtmlBuilder().build(
-                {n: 'div', a: {'id': 'playlistWindow', class: 'window'}, c: [
+                {n: 'div', a: {class: 'window playlist'}, c: [
                     {n: 'div', a: {class: "header", c: [
                         {n: 'div', a: {class: "minimize"}}
                     ]}},
@@ -105,44 +131,80 @@
         },
 
         /**
-         * Register all of our handlers to the player
+         * Create a table row for for the song
+         *
+         * @param song MK.Song the song to add
+         * @param rowNumber int The number of the row
          */
-        registerEvents: function() {
-            this.player.addEventListener('play', (function(song) {
-                // Handle a song change
-                this.mainWindowArtistLabel.innerHTML = song.artist || "&nbsp;";
-                this.mainWindowAlbumLabel.innerHTML = song.album || "&nbsp;";
-                this.mainWindowTitleLabel.innerHTML= song.title || "&nbsp;";
-
-                var seeker =  this.mainWindow.getElementsByClassName('seek')[0];
-                seeker.value = 0;
-                seeker.max = song.getDurationInSeconds();
-
-                this.selectRow(this.player.playlist.indexOf(song));
-            }).bind(this));
-
-            this.player.addEventListener('stop', (function(song) {
-                this.mainWindowArtistLabel.innerHTML = "&nbsp;";
-                this.mainWindowAlbumLabel.innerHTML = "&nbsp;";
-                this.mainWindowTitleLabel.innerHTML= "&nbsp;";
-            }).bind(this));
-
-            this.player.addEventListener('playing', (function(attr) {
-                // Update the seekbar while playing
-                this.mainWindow.getElementsByClassName('seek')[0].value = (attr.currentTime);
-            }).bind(this));
-
-            this.player.addEventListener('playlistLoaded', (function() {
-                this.redrawPlaylist();
-            }).bind(this));
-
-            this.player.addEventListener('volumeChanged', (function(newVolume) {
-                this.mainWindow.getElementsByClassName('volume')[0].value = newVolume;
-            }).bind(this));
+        createSongRow: function(song, rowNumber) {
+            /**
+             * Because we're using tr/td we can't use ellipsis as that needs a block element.
+             * In the past I've embedded a div in the name td which had the ellipsis, but this
+             * greatly reduces performance when you have a large playlist.
+             * This was the difference between snappy and sluggish, so I've decided to not use ellipsis anymore..
+             * Maybe this is fixable by not using a table, but using divs, but this need to be checked with a big
+             * playlist (100k+ items)
+             */
+            return MK.HtmlBuilder().build(
+                {n: 'tr', a: {row: rowNumber-1}, c: [
+                    {n: 'td', a: { class: 'r'}, t: rowNumber + "."},
+                    {n: 'td', a: { class: 'n'}, t: song.getFullName()},
+                    {n: 'td', a: { class: 'd'}, t: song.getDuration()}
+                ]}
+            );
         },
 
         /**
-         * Clear the playlist and rebuild completely
+         * Register all of our handlers to the player
+         */
+        registerEvents: function() {
+            this.player.addEventListener('play', this.playerOnPlay.bind(this));
+            this.player.addEventListener('stop', this.playerOnStop.bind(this));
+            this.player.addEventListener('playing', this.playerOnPlaying.bind(this));
+            this.player.addEventListener('playlistLoaded', this.playerOnPlaylistLoaded.bind(this));
+            this.player.addEventListener('volumeChanged', this.playerOnVolumeChanged.bind(this));
+            this.player.addEventListener('songChanged', this.playerOnSongChanged.bind(this));
+        },
+
+        playerOnSongChanged: function(song) {
+            // Handle a song change
+            this.mainWindowArtistLabel.innerHTML = song.artist || "&nbsp;";
+            this.mainWindowAlbumLabel.innerHTML = song.album || "&nbsp;";
+            this.mainWindowTitleLabel.innerHTML= song.title || "&nbsp;";
+
+            this.seeker.max = song.getDurationInSeconds();
+            this.seeker.value = 0;
+
+            this.totalTimeLabel.innerHTML = song.length;
+            this.stylePlayButton();
+        },
+
+        playerOnPlay: function(song) {
+            // Handle when the player starts to play (a new song, or a paused song)
+            this.selectRow(this.player.playlist.indexOf(song));
+        },
+
+        playerOnStop : function() {
+            this.seeker.value = 0;
+            this.currentTimeLabel.innerHTML = '0:00';
+        },
+
+        playerOnPlaying: function(param) {
+            // Update the seekbar while playing
+            this.seeker.value = param.currentTime;
+            this.currentTimeLabel.innerHTML = MK.secondsToTime(param.currentTime);
+        },
+
+        playerOnPlaylistLoaded: function() {
+            this.redrawPlaylist();
+        },
+
+        playerOnVolumeChanged: function(newVolume) {
+            this.volumeSlider.value = newVolume;
+        },
+
+        /**
+         * Clear the playlist and rebuild (the DOM/html) completely
          */
         redrawPlaylist: function() {
             this.playlistWindowContent.innerHTML = '';
@@ -194,11 +256,18 @@
                 tableRow = tableRow.parentElement;
             }
 
+            this.seeker.value = 0;
+
             // Now select the row and play the song
             this.selectRow(tableRow.getAttribute('row'), tableRow);
             this.player.play(tableRow.getAttribute('row'));
 
             return false;
+        },
+
+        clickPlay: function() {
+            this.player.play();
+            this.stylePlayButton();
         },
 
         /**
@@ -207,7 +276,13 @@
          * @param event
          */
         clickRepeat: function(event) {
-            this.player.repeat = !this.player.repeat;
+            if (this.player.repeatState == this.player.REPEAT_STATES.REPEAT_NONE)
+                this.player.setRepeatState(this.player.REPEAT_STATES.REPEAT_ALL);
+            else if (this.player.repeatState == this.player.REPEAT_STATES.REPEAT_ALL)
+                this.player.setRepeatState(this.player.REPEAT_STATES.REPEAT_ONE);
+            else
+                this.player.setRepeatState(this.player.REPEAT_STATES.REPEAT_NONE);
+
             this.styleRepeatButton();
         },
 
@@ -227,6 +302,7 @@
          * @param event
          */
         clickNext: function() {
+            this.seeker.value = 0; // Show instant feedback
             this.player.next();
             this.makeSureCurrentSongIsVisible();
         },
@@ -237,8 +313,17 @@
          * @param event
          */
         clickPrevious: function() {
+            this.seeker.value = 0; // Show instant feedback
             this.player.previous();
             this.makeSureCurrentSongIsVisible();
+        },
+
+        clickSeekBackward: function() {
+            this.player.seek(this.player.audioEngine.currentTime - 5);
+        },
+
+        clickSeekForward: function() {
+            this.player.seek(this.player.audioEngine.currentTime + 5);
         },
 
         /**
@@ -275,48 +360,37 @@
          * Synchronize the styling of the repeat button with the current repeat setting of the player
          */
         styleRepeatButton: function() {
-            var button = this.mainWindow.getElementsByClassName('repeat')[0];
-
-            if (this.player.repeat)
-                button.innerHTML = "Repeat: on";
-            else
-                button.innerHTML = "Repeat: off";
+            if (this.player.repeatState == this.player.REPEAT_STATES.REPEAT_ALL)
+                this.repeatButton.innerHTML = "Repeat: all";
+            else if (this.player.repeatState == this.player.REPEAT_STATES.REPEAT_NONE)
+                this.repeatButton.innerHTML = "Repeat: none";
+            else if (this.player.repeatState == this.player.REPEAT_STATES.REPEAT_ONE)
+                this.repeatButton.innerHTML = "Repeat: one";
         },
 
         /**
          * Synchronize the styling of the shuffle button with the current shuffle setting of the player
          */
         styleShuffleButton: function() {
-            var button = this.mainWindow.getElementsByClassName('shuffle')[0];
-
             if (this.player.shuffle)
-                button.innerHTML = "Shuffle: on";
+                this.shuffleButton.innerHTML = "Shuffle: on";
             else
-                button.innerHTML = "Shuffle: off";
+                this.shuffleButton.innerHTML = "Shuffle: off";
         },
 
-
         /**
-         * Create a table for for the song
-         * @param song MK.Song the song to add
-         * @param rowNumber int The number of the row
+         * Synchronize the styling of the play button with the current players state
          */
-        createSongRow: function(song, rowNumber) {
-            /**
-             * Because we're using tr/td we can't use ellipsis as that needs a block element.
-             * In the past I've embedded a div in the name td which had the ellipsis, but this
-             * greatly reduces performance when you have a large playlist.
-             * This was the difference between snappy and sluggish, so I've decided to not use ellipsis anymore..
-             * Maybe this is fixable by not using a table, but using divs, but this need to be checked with a big
-             * playlist (100k+ items)
-             */
-            return MK.HtmlBuilder().build(
-                {n: 'tr', a: {row: rowNumber-1}, c: [
-                    {n: 'td', a: { class: 'r'}, t: rowNumber + "."},
-                    {n: 'td', a: { class: 'n'}, t: song.getFullName()},
-                    {n: 'td', a: { class: 'd'}, t: song.getDuration()}
-                ]}
-            );
+        stylePlayButton: function() {
+            // The plain skin doesn't need to style the play button, but sub skins do
+        },
+
+        _disableElementSelection: function() {
+            // chrome
+            document.body.style.webkitUserSelect = "none";
+
+            // firefox (this doesn't work ;()
+            //document.body.style.MozUserSelect = "none";
         }
     })
 })(MK);
