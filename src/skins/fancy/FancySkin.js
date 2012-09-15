@@ -12,6 +12,11 @@
             // First call the parent implementation
             MK.PlainSkin.prototype.initializeElements.call(this);
 
+            this._initializeScrollbar();
+            this._makeResizable();
+        },
+
+        _initializeScrollbar: function() {
             // Now initialize our custom scrollbar
             this.scroller = this.playlistWindow.getElementsByClassName('scroller')[0];
             MK.draggable(this.scroller, {
@@ -21,17 +26,24 @@
 
             // Update the scroller when we natively scroll the playlist
             this.playlistWindowContent.parentNode.addEventListener('scroll', this.handlePlaylistWindowScroll.bind(this));
+        },
 
+        _makeResizable: function() {
             // Make the window resizable
-            var resizer = this.playlistWindow.getElementsByClassName('footer-right')[0];
-            MK.draggable(resizer, {
+            MK.draggable(this.playlistWindow.getElementsByClassName('footer-right')[0], {
                 moveElement: false,
                 drag: this.handlePlaylistResize.bind(this)
-            })
-
-            // And make the mainwindow draggable
-            MK.draggable(this.mainWindow);
+            });
+            MK.draggable(this.playlistWindow.getElementsByClassName('body-right')[0], {
+                moveElement: false,
+                drag: this.handlePlaylistResize.bind(this)
+            });
+            MK.draggable(this.playlistWindow.getElementsByClassName('footer-stretch')[0], {
+                moveElement: false,
+                drag: this.handlePlaylistResize.bind(this)
+            });
         },
+
          /**
          * Create the playlist window
          *
@@ -170,17 +182,21 @@
          *
          * @param event
          */
-        handlePlaylistResize: function(event) {
+        handlePlaylistResize: function(event, element) {
             var topLeftCorner = MK.getAbsolutePosition(this.playlistWindow);
             var mousePos = {x: event.clientX, y: event.clientY};
 
-            var newWidth = mousePos.x - topLeftCorner.x
-            if (newWidth > 200)
-                this.playlistWindow.style.width = newWidth + "px";
+            if (!element.className.match(/footer-stretch/)) {
+                var newWidth = mousePos.x - topLeftCorner.x
+                if (newWidth > 200)
+                    this.playlistWindow.style.width = newWidth + "px";
+            }
 
-            var newHeight = mousePos.y - topLeftCorner.y;
-            if (newHeight > 100)
-                this.playlistWindow.style.height = newHeight + "px";
+            if (!element.className.match(/body-right/)) {
+                var newHeight = mousePos.y - topLeftCorner.y;
+                if (newHeight > 100)
+                    this.playlistWindow.style.height = newHeight + "px";
+            }
         }
     });
 })(MK);
