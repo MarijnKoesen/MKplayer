@@ -6,7 +6,6 @@
 	font-size: 12px;
 }
 
-
 .window.main {
 	width: 465px;
 	height: 170px;
@@ -118,6 +117,7 @@
 }
 
 .window.playlist tr {
+	cursor: pointer;
 	vertical-align: top;
 }
 
@@ -214,12 +214,19 @@
 
 .window.playlist .body-content {
 	padding-top: 1px;
+	padding-bottom: 1px;
+	border-right-width: 0px;
+	padding-right: 12px;
 	width: 100%;
+	height: 100%;
+
+	overflow-y: scroll;
+	overflow-x: hidden;
 }
 
 .window.playlist .body-right {
 	background: url(images/playlist_vertical_stretch.png) -8px 0 repeat-y;
-	width: 7px;
+	width: 26px;
 	right: 0;
 }
 
@@ -249,4 +256,14 @@
 	height: 6px;
 	position: absolute;
 	right: 0;
+	cursor: nwse-resize;
+}
+
+.window.playlist .scroller {
+	background: url(images/player_spritemap.png) -1px -139px;
+	width: 10px;
+	height: 30px;
+	position: absolute;
+	right: 11px;
+	cursor: pointer;
 }

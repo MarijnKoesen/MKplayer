@@ -3,13 +3,14 @@ if (!window.MK)
 
 (function(MK) {
     MK.ajax = function(url, options) {
+        var options = options || {};
         var defaultOptions = {
             async: true,
             method: 'POST',
             callback: null
         }
 
-        MK.extend(options || {}, defaultOptions, false);
+        MK.extend(options, defaultOptions, false);
 
         var xmlHttp = new XMLHttpRequest();
         if (options.callback) {
@@ -28,6 +29,135 @@ if (!window.MK)
         for (var attr in source)
             if (!dest.hasOwnProperty(attr) || overwrite)
                 dest[attr] = source[attr];
+    }
+
+    /**
+     * Make an element draggable
+     *
+     * @type {*}
+     */
+    MK.draggable = (function() {
+        // Encapsulate most of the logic in a private namespace
+        // See the button of the function for the api
+        var hasRegisteredMouseMoveEvent = false;
+        var draggingElement; // The element that is being dragged
+        var draggingOptions; // The drag options for the current draggingElement
+        var dragStartMousePos;
+        var dragStartElementPos;
+        var that = this;
+
+        var registerMouseMoveEvent = function() {
+            window.addEventListener('mousemove', function(event) {
+                if (this.draggingElement) {
+                    if (!this.draggingOptions.moveElement) {
+                        // Don't move the element, just notify that the element is being dragged
+                        if (this.draggingOptions.drag)
+                            this.draggingOptions.drag(event);
+                    } else {
+                        // Move the element to position of the mouse
+                        if (!this.dragStartMousePos) {
+                            // The first (event) we drag the element we need to set the starting positions
+                            this.dragStartMousePos = {x: event.clientX, y: event.clientY};
+                            this.dragStartElementPos = {x: this.draggingElement.offsetLeft, y: this.draggingElement.offsetTop};
+                        }
+
+                        if (this.draggingOptions.dragX) {
+                            var newX = this.dragStartElementPos.x + (parseInt(event.clientX) - this.dragStartMousePos.x);
+
+
+                            if (this.draggingOptions.constrainToParent) {
+                                if (newX < 0) {
+                                    newX = 0;
+                                } else {
+                                    var maxX = (this.draggingElement.parentNode.offsetWidth || window.innerWidth) - this.draggingElement.offsetWidth;
+                                    if (newX > maxX)
+                                        newX = maxX;
+                                }
+                            }
+
+                            this.draggingElement.style.left = newX + "px";
+                        }
+
+                        if (this.draggingOptions.dragY) {
+                            var newY = this.dragStartElementPos.y + (parseInt(event.clientY) - this.dragStartMousePos.y);
+
+                            if (this.draggingOptions.constrainToParent) {
+                                if (newY < 0) {
+                                    newY = 0;
+                                } else {
+                                    var maxY = (this.draggingElement.parentNode.offsetHeight || window.innerHeight) - this.draggingElement.offsetHeight;
+
+                                    if (newY > maxY)
+                                        newY = maxY;
+                                }
+                            }
+
+                            this.draggingElement.style.top = newY + "px";
+                        }
+
+                        if (this.draggingOptions.drag) {
+                            this.draggingOptions.drag(event);
+                        }
+                    }
+                }
+            }, false);
+
+            hasRegisteredMouseMoveEvent = true;
+        }
+
+        window.addEventListener('mouseup', function() {
+            this.draggingElement = null;
+            this.dragStartMousePos = null;
+            this.dragStartElementPos = null;
+        }, false);
+
+        function setDraggingElement(element, options) {
+            this.draggingElement = element;
+            this.draggingOptions = options;
+        }
+
+        /**
+         * @param element The element to make draggable
+         * @param options The options
+         */
+        return function(element, options) {
+            var options = options || {};
+            var defaults = {
+                moveElement: true, // if false only drag notifications are send out, but the element is not moved itself
+                constrainToParent: true, // don't let the element go beyond the bounds of the parent
+                dragX: true, // allow draggin on x-axis
+                dragY: true, // allow draggin on y-axis
+                drag: null // function to be executed during the dragging
+            };
+            MK.extend(options, defaults);
+
+            if (!hasRegisteredMouseMoveEvent)
+                registerMouseMoveEvent();
+
+            element.addEventListener('mousedown', setDraggingElement.bind(that, element, options));
+        }
+    })();
+
+    /**
+     * Get the absolute position for the element
+     *
+     * @param element
+     * @return {Object}
+     */
+    MK.getAbsolutePosition = function(element) {
+        var pos = {x: 0, y: 0};
+
+        do {
+            if (element.offsetLeft)
+                pos.x = pos.x + parseInt(element.offsetLeft);
+
+            if (element.offsetTop)
+                pos.y = pos.y + parseInt(element.offsetTop);
+
+            element = element.parentNode;
+        } while (element);
+
+        return pos;
     }
 
     /**

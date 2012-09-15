@@ -22,9 +22,9 @@
 
     MK.extend(MK.PlainSkin.prototype, {
         init: function() {
-            this._disableElementSelection();
             this.createWindows();
             this.initializeElements();
+            this._disableElementSelection();
             this.registerEvents();
             this.redrawPlaylist();
         },
@@ -387,7 +387,15 @@
 
         _disableElementSelection: function() {
             // chrome
-            document.body.style.webkitUserSelect = "none";
+            // Note: This was really slow when you drag something (hold the mouse down and move it)
+            //       chrome is a real PITA when it concerns no-select, it's REALLY slow.
+            //document.body.style.webkitUserSelect = "none";
+
+            // Note 2: this seems to work the fastest...
+            document.onselectstart = function() {
+                // ie & chrome
+                return false;
+            }
 
             // firefox (this doesn't work ;()
             //document.body.style.MozUserSelect = "none";

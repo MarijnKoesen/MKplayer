@@ -1,11 +1,37 @@
 (function(MK) {
     MK.FancySkin = function(player) {
         this.player = player;
+
+        this.scroller = null;
     }
 
     MK.FancySkin.prototype = new MK.PlainSkin();
 
     MK.extend(MK.FancySkin.prototype, {
+        initializeElements: function() {
+            // First call the parent implementation
+            MK.PlainSkin.prototype.initializeElements.call(this);
+
+            // Now initialize our custom scrollbar
+            this.scroller = this.playlistWindow.getElementsByClassName('scroller')[0];
+            MK.draggable(this.scroller, {
+                dragX: false,
+                drag: this.handleScrollerDrag.bind(this)
+            });
+
+            // Update the scroller when we natively scroll the playlist
+            this.playlistWindowContent.parentNode.addEventListener('scroll', this.handlePlaylistWindowScroll.bind(this));
+
+            // Make the window resizable
+            var resizer = this.playlistWindow.getElementsByClassName('footer-right')[0];
+            MK.draggable(resizer, {
+                moveElement: false,
+                drag: this.handlePlaylistResize.bind(this)
+            })
+
+            // And make the mainwindow draggable
+            MK.draggable(this.mainWindow);
+        },
          /**
          * Create the playlist window
          *
@@ -66,7 +92,9 @@
                         {n: 'div', a: {class: "body-content"}, e: { click: this.clickSong.bind(this)}, c: [
                             {n: 'table', a: {cellSpacing: 0}}
                         ]},
-                        {n: 'div', a: {class: "body-right"}}
+                        {n: 'div', a: {class: "body-right"}, c: [
+                            {n: 'div', a: {class: "scroller"}}
+                        ]}
                     ]},
                     {n: 'div', a: {class: "footer"}, c:[
                         {n: 'div', a: {class: "footer-stretch"}},
@@ -117,6 +145,42 @@
             }
 
             this.stylePlayButton();
+        },
+
+        /**
+         * Update the native scroll position when the scroll handle is being dragged
+         */
+        handleScrollerDrag: function() {
+            var scrollPercentage = this.scroller.offsetTop / (this.scroller.parentNode.offsetHeight - this.scroller.offsetHeight);
+            var maxScroll = this.playlistWindowContent.offsetHeight;
+            this.playlistWindowContent.parentNode.scrollTop = maxScroll * scrollPercentage;
+        },
+
+        /**
+         * Update the position of the scroll handle when the playlist is natively scrolled,
+         */
+        handlePlaylistWindowScroll: function() {
+            var scrollPercentage = this.playlistWindowContent.parentNode.scrollTop / (this.playlistWindowContent.offsetHeight - this.playlistWindowContent.parentNode.offsetHeight);
+            var maxScrollerPos = this.scroller.parentNode.offsetHeight - this.scroller.offsetHeight;
+            this.scroller.style.top = Math.round(maxScrollerPos * scrollPercentage) + "px";
+        },
+
+        /**
+         * Handle the drag event when the playlist is being resized
+         *
+         * @param event
+         */
+        handlePlaylistResize: function(event) {
+            var topLeftCorner = MK.getAbsolutePosition(this.playlistWindow);
+            var mousePos = {x: event.clientX, y: event.clientY};
+
+            var newWidth = mousePos.x - topLeftCorner.x
+            if (newWidth > 200)
+                this.playlistWindow.style.width = newWidth + "px";
+
+            var newHeight = mousePos.y - topLeftCorner.y;
+            if (newHeight > 100)
+                this.playlistWindow.style.height = newHeight + "px";
         }
     });
 })(MK);
