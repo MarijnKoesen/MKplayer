@@ -49,6 +49,35 @@
         },
 
         /**
+         * Create the playlist window
+         *
+         * @return object the DOM element for the playlist window
+         */
+        createPlaylistWindow: function() {
+            return MK.HtmlBuilder().build(
+                {n: 'div', a: {class: 'window playlist'}, c: [
+                    {n: 'div', a: {class: "header"}, c: [
+                        {n: 'div', a: {class: "header-stretch"}},
+                        {n: 'div', a: {class: "header-left"}},
+                        {n: 'div', a: {class: "header-right"}}
+                    ]},
+                    {n: 'div', a: {class: "body"}, c: [
+                        {n: 'div', a: {class: "body-left"}},
+                        {n: 'div', a: {class: "body-content"}, e: { click: this.clickSong.bind(this)}, c: [
+                            {n: 'table', a: {cellSpacing: 0}}
+                        ]},
+                        {n: 'div', a: {class: "body-right"}}
+                    ]},
+                    {n: 'div', a: {class: "footer"}, c:[
+                        {n: 'div', a: {class: "footer-stretch"}},
+                        {n: 'div', a: {class: "footer-left"}},
+                        {n: 'div', a: {class: "footer-right"}}
+                    ]}
+                ]}
+            );
+        },
+
+        /**
          * Synchronize the styling of the play button with the current players state
          */
         stylePlayButton: function() {

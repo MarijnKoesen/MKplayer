@@ -110,15 +110,13 @@
 .window.playlist {
 	position: absolute;
 	top: 178px;
-	cursor: pointer;
-	padding: 2px;
 
-	width: 460px;
+	width: 465px;
 	height: 300px;
-	overflow: auto;
 
 	font-family: arial;
 }
+
 .window.playlist tr {
 	vertical-align: top;
 }
@@ -133,11 +131,122 @@
 	color: #e4e4e4;
 }
 
+.window.playlist td.r {
+	padding-left: 3px;
+}
+
 .window.playlist td.n {
-	width: 410px;
+	width: 100%;
 }
 
 .window.playlist td.d {
+	padding-right: 3px;
 	text-align: right;
 }
 
+
+
+
+
+/**
+ * Playlist border styling
+ */
+.window.playlist .header-stretch,
+.window.playlist .body-content,
+.window.playlist .footer-stretch {
+	width: 100%;
+
+	position: absolute;
+	box-sizing: border-box;
+	border-left: 7px solid transparent;
+	border-right: 7px solid transparent;
+}
+
+.window.playlist .body-left,
+.window.playlist .body-right {
+	height: 100%;
+	position: absolute;
+	box-sizing: border-box;
+}
+
+.window.playlist .header {
+	height: 7px;
+}
+
+.window.playlist .header-left {
+	background: url(images/player_spritemap.png) 0 -120px;
+	width: 7px;
+	height: 8px;
+	position: absolute;
+}
+
+.window.playlist .header-stretch {
+	background: url(images/playlist_horizontal_stretch.png) repeat-x;
+	height: 8px;
+}
+
+.window.playlist .header-right {
+	background: url(images/player_spritemap.png) -10px -120px;
+	width: 7px;
+	height: 8px;
+	position: absolute;
+	right: 0;
+}
+
+.window.playlist .body {
+	height: 100%;
+	width: 100%;
+
+	position: absolute;
+	box-sizing: border-box;
+
+	border-top: 7px solid transparent;
+	border-bottom: 6px solid transparent;
+
+	top: 0;
+}
+
+.window.playlist .body-left {
+	background: url(images/playlist_vertical_stretch.png) repeat-y;
+	width: 7px;
+	position: absolute;
+}
+
+.window.playlist .body-content {
+	padding-top: 1px;
+	width: 100%;
+}
+
+.window.playlist .body-right {
+	background: url(images/playlist_vertical_stretch.png) -8px 0 repeat-y;
+	width: 7px;
+	right: 0;
+}
+
+.window.playlist .footer {
+	height: 6px;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+}
+
+.window.playlist .footer-left {
+	background: url(images/player_spritemap.png) 0 -131px;
+	width: 7px;
+	height: 6px;
+
+	position: absolute;
+}
+
+.window.playlist .footer-stretch {
+	background: url(images/playlist_horizontal_stretch.png) 0 -9px repeat-x;
+	height: 6px;
+}
+
+.window.playlist .footer-right {
+	background: url(images/player_spritemap.png) -10px -131px;
+	width: 7px;
+	height: 6px;
+	position: absolute;
+	right: 0;
+}
