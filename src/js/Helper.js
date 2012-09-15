@@ -52,7 +52,7 @@ if (!window.MK)
                     if (!this.draggingOptions.moveElement) {
                         // Don't move the element, just notify that the element is being dragged
                         if (this.draggingOptions.drag)
-                            this.draggingOptions.drag(event);
+                            this.draggingOptions.drag(event, this.draggingElement);
                     } else {
                         // Move the element to position of the mouse
                         if (!this.dragStartMousePos) {
@@ -96,7 +96,7 @@ if (!window.MK)
                         }
 
                         if (this.draggingOptions.drag) {
-                            this.draggingOptions.drag(event);
+                            this.draggingOptions.drag(event, this.draggingElement);
                         }
                     }
                 }
@@ -111,9 +111,11 @@ if (!window.MK)
             this.dragStartElementPos = null;
         }, false);
 
-        function setDraggingElement(element, options) {
-            this.draggingElement = element;
-            this.draggingOptions = options;
+        function setDraggingElement(element, options, event) {
+            if (options.strict && event.target == element || !options.strict) {
+                this.draggingElement = element;
+                this.draggingOptions = options;
+            }
         }
 
         /**
@@ -127,7 +129,8 @@ if (!window.MK)
                 constrainToParent: true, // don't let the element go beyond the bounds of the parent
                 dragX: true, // allow draggin on x-axis
                 dragY: true, // allow draggin on y-axis
-                drag: null // function to be executed during the dragging
+                drag: null, // function to be executed during the dragging
+                strict: true // if true, the dragging will only occur if the element was directly clicked (so not it won't fire on a child element)
             };
             MK.extend(options, defaults);
 
