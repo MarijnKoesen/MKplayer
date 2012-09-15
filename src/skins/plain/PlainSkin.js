@@ -182,11 +182,13 @@
         playerOnPlay: function(song) {
             // Handle when the player starts to play (a new song, or a paused song)
             this.selectRow(this.player.playlist.indexOf(song));
+            this.stylePlayButton();
         },
 
         playerOnStop : function() {
             this.seeker.value = 0;
             this.currentTimeLabel.innerHTML = '0:00';
+            this.stylePlayButton();
         },
 
         playerOnPlaying: function(param) {
@@ -304,7 +306,7 @@
         clickNext: function() {
             this.seeker.value = 0; // Show instant feedback
             this.player.next();
-            this.makeSureCurrentSongIsVisible();
+            this.ensureCurrentSongIsVisible();
         },
 
         /**
@@ -315,7 +317,7 @@
         clickPrevious: function() {
             this.seeker.value = 0; // Show instant feedback
             this.player.previous();
-            this.makeSureCurrentSongIsVisible();
+            this.ensureCurrentSongIsVisible();
         },
 
         clickSeekBackward: function() {
@@ -348,11 +350,14 @@
         /**
          * Automatically adjust the scroll position of the playlist to make sure the current playing song is visible
          */
-        makeSureCurrentSongIsVisible: function() {
-            if (parseInt(this.playlistWindow.scrollTop + parseInt(this.playlistWindow.offsetHeight) - 50) < parseInt(this.currentPlayingTableRow.offsetTop)) {
-                this.playlistWindow.scrollTop = this.currentPlayingTableRow.offsetTop - 50;
-            } else if (parseInt(this.playlistWindow.scrollTop) > parseInt(this.currentPlayingTableRow.offsetTop)) {
-                this.playlistWindow.scrollTop = this.currentPlayingTableRow.offsetTop - 50;
+        ensureCurrentSongIsVisible: function() {
+            var currentScroll = parseInt(this.playlistWindowContent.parentNode.scrollTop);
+            var viewPortHeight = this.playlistWindowContent.parentNode.offsetHeight;
+            var songY = this.currentPlayingTableRow.offsetTop;
+            if (songY < currentScroll + 40) {
+                this.playlistWindowContent.parentNode.scrollTop = songY - 50;
+            } else if (songY > currentScroll + viewPortHeight - 50) {
+                this.playlistWindowContent.parentNode.scrollTop = songY - viewPortHeight + 60;
             }
         },
 
