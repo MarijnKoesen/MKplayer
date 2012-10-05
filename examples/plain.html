@@ -19,6 +19,7 @@
         player = new MK.Player();
 
         // Add songs with javascript
+		player.addSong(new MK.Song({title: "NOTE!! These are dummy songs and don't work!", artist: "Some artist", album: "Some album", year: "1999", url: "/some_file_.mp3", length: "9:34"}));
         player.addSong(new MK.Song({title: "Some manual song title", artist: "Some artist", album: "Some album", year: "1999", url: "/some_file_.mp3", length: "2:34"}));
         player.addSong(new MK.Song({title: "Some manual song title2", artist: "Some artist", album: "Some album", year: "1999", url: "/some_file2_.mp3", length: "1:23"}));
         player.addSong(new MK.Song({title: "Some manual song title3", artist: "Some artist", album: "Some album", year: "1999", url: "/some_file3_.mp3", length: "0:34"}));

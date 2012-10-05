@@ -175,7 +175,7 @@
             this.seeker.max = song.getLength();
             this.seeker.value = 0;
 
-            this.totalTimeLabel.innerHTML = song.length;
+            this.totalTimeLabel.innerHTML = MK.secondsToTime(song.length);
             this.stylePlayButton();
         },
 
