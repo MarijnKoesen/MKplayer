@@ -1,11 +1,13 @@
 (function(MK) {
     MK.Song = function(attributes) {
+		// The defaults, these will be overwritten by attributes
         this.url = null;
         this.title = null;
         this.artist = null;
         this.album = null;
-        this.length = null;
+        this.length = null; // numeric e.g. 122
 
+		// Overwrite the object vars with the attributes
         if (typeof attributes == 'object') {
             MK.extend(this, attributes, true);
         } else {
@@ -13,10 +15,13 @@
             return null;
         }
 
+		// Make sure we are sane
         if (!this.url) {
             console.error("A song always needs to have a url")
             return null;
         }
+
+        this.length = MK.timeToSeconds(this.length);
     }
 
     MK.extend(MK.Song.prototype, {
@@ -39,19 +44,8 @@
             return fullName.replace(/ - $/, "");
         },
 
-        getDuration: function() {
+        getLength: function() {
             return this.length;
-        },
-
-        getDurationInSeconds: function() {
-            var match;
-            if ((match = this.length.match(/([0-9]+):([0-9]+):([0-9]{2})/))) {
-                return parseInt(match[1] * 3600) + parseInt(match[2] * 60) + parseInt(match[3]);
-            } else if ((match = this.length.match(/([0-9]+):([0-9]{2})/))) {
-                return parseInt(match[1] * 60) + parseInt(match[2]);
-            } else {
-                return this.length;
-            }
         }
     });
 })(MK);

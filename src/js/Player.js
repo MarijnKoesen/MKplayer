@@ -295,14 +295,12 @@
         /**
          * Private: Parse the XmlHttpRequest and load all the songs
          *
-         * @param xhrResult
-         */
-        _doAppendPlaylist: function (xhrResult) {
+         * @param array of song objects
+		 */
+        _doAppendPlaylist: function (songs) {
             // When loading a playlist of say 100k items it would take some time, in the meantime the browser would 'hang'
             // if we were to load a playlist in one go.
             // To fix this we add everything to a queue and then add managable groups, this avoids a hanging browser.
-            var songs = eval(xhrResult.responseText);
-
             var i = 0, song;
             while ((song = songs[i++])) {
                 this.playlistLoadQueue.push(song);
@@ -319,10 +317,10 @@
         _loadSongsFromQueue: function() {
             if (this.playlistLoadQueue.length) {
                 var doNow = this.playlistLoadQueue.splice(0, 10000)
-                var songs = [], i = 0;
+                var songs = [], i = 0, song;
 
                 while((song = doNow[i++])) {
-                    if (MK.parseLengthToSeconds(song.length) > 0)
+                    if (MK.timeToSeconds(song.length) > 0)
                         songs.push(new MK.Song(song));
                 }
 

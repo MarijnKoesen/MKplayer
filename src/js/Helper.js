@@ -7,6 +7,7 @@ if (!window.MK)
         var defaultOptions = {
             async: true,
             method: 'POST',
+            decodeJson: true,
             callback: null
         }
 
@@ -16,7 +17,15 @@ if (!window.MK)
         if (options.callback) {
             xmlHttp.onreadystatechange = function() {
                 if(xmlHttp.readyState == 4) {
-                    options['callback'](xmlHttp);
+                    if (options.decodeJson) {
+                        try {
+                            options['callback'](eval(xmlHttp.responseText));
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    } else {
+                        options['callback'](xmlHttp);
+                    }
                 }
             }
         }
@@ -49,55 +58,55 @@ if (!window.MK)
         var registerMouseMoveEvent = function() {
             window.addEventListener('mousemove', function(event) {
                 if (this.draggingElement) {
-                    if (!this.draggingOptions.moveElement) {
-                        // Don't move the element, just notify that the element is being dragged
-                        if (this.draggingOptions.drag)
-                            this.draggingOptions.drag(event, this.draggingElement);
-                    } else {
-                        // Move the element to position of the mouse
-                        if (!this.dragStartMousePos) {
-                            // The first (event) we drag the element we need to set the starting positions
-                            this.dragStartMousePos = {x: event.clientX, y: event.clientY};
-                            this.dragStartElementPos = {x: this.draggingElement.offsetLeft, y: this.draggingElement.offsetTop};
-                        }
+                    // First call the callback and return if the callback returns false
+                    if (this.draggingOptions.drag) {
+                        if (this.draggingOptions.drag(event, this.draggingElement) === false)
+                            return;
+                    }
 
-                        if (this.draggingOptions.dragX) {
-                            var newX = this.dragStartElementPos.x + (parseInt(event.clientX) - this.dragStartMousePos.x);
+                    // Move the element to position of the mouse
+                    if (!this.dragStartMousePos) {
+                        // The first (event) we drag the element we need to set the starting positions
+                        this.dragStartMousePos = {x: event.clientX, y: event.clientY};
+                        this.dragStartElementPos = {x: this.draggingElement.offsetLeft, y: this.draggingElement.offsetTop};
+                    }
+
+                    if (this.draggingOptions.dragX) {
+                        var newX = this.dragStartElementPos.x + (parseInt(event.clientX) - this.dragStartMousePos.x);
 
 
-                            if (this.draggingOptions.constrainToParent) {
-                                if (newX < 0) {
-                                    newX = 0;
-                                } else {
-                                    var maxX = (this.draggingElement.parentNode.offsetWidth || window.innerWidth) - this.draggingElement.offsetWidth;
-                                    if (newX > maxX)
-                                        newX = maxX;
-                                }
+                        if (this.draggingOptions.constrainToParent) {
+                            if (newX < 0) {
+                                newX = 0;
+                            } else {
+                                var maxX = (this.draggingElement.parentNode.offsetWidth || window.innerWidth) - this.draggingElement.offsetWidth;
+                                if (newX > maxX)
+                                    newX = maxX;
                             }
-
-                            this.draggingElement.style.left = newX + "px";
                         }
 
-                        if (this.draggingOptions.dragY) {
-                            var newY = this.dragStartElementPos.y + (parseInt(event.clientY) - this.dragStartMousePos.y);
+                        this.draggingElement.style.left = newX + "px";
+                    }
 
-                            if (this.draggingOptions.constrainToParent) {
-                                if (newY < 0) {
-                                    newY = 0;
-                                } else {
-                                    var maxY = (this.draggingElement.parentNode.offsetHeight || window.innerHeight) - this.draggingElement.offsetHeight;
+                    if (this.draggingOptions.dragY) {
+                        var newY = this.dragStartElementPos.y + (parseInt(event.clientY) - this.dragStartMousePos.y);
 
-                                    if (newY > maxY)
-                                        newY = maxY;
-                                }
+                        if (this.draggingOptions.constrainToParent) {
+                            if (newY < 0) {
+                                newY = 0;
+                            } else {
+                                var maxY = (this.draggingElement.parentNode.offsetHeight || window.innerHeight) - this.draggingElement.offsetHeight;
+
+                                if (newY > maxY)
+                                    newY = maxY;
                             }
-
-                            this.draggingElement.style.top = newY + "px";
                         }
 
-                        if (this.draggingOptions.drag) {
-                            this.draggingOptions.drag(event, this.draggingElement);
-                        }
+                        this.draggingElement.style.top = newY + "px";
+                    }
+
+                    if (this.draggingOptions.drag) {
+                        this.draggingOptions.drag(event, this.draggingElement);
                     }
                 }
             }, false);
@@ -112,7 +121,16 @@ if (!window.MK)
         }, false);
 
         function setDraggingElement(element, options, event) {
-            if (options.strict && event.target == element || !options.strict) {
+            var enableDragging = true;
+            if (options.dragStart) {
+                if (options.dragStart(event, element) === false) {
+                    enableDragging = false;
+                }
+            } else if (options.strict && event.target != element) {
+                enableDragging = false;
+            }
+
+            if (enableDragging) {
                 this.draggingElement = element;
                 this.draggingOptions = options;
             }
@@ -125,11 +143,11 @@ if (!window.MK)
         return function(element, options) {
             var options = options || {};
             var defaults = {
-                moveElement: true, // if false only drag notifications are send out, but the element is not moved itself
                 constrainToParent: true, // don't let the element go beyond the bounds of the parent
                 dragX: true, // allow draggin on x-axis
                 dragY: true, // allow draggin on y-axis
                 drag: null, // function to be executed during the dragging
+                dragStart: null, // function to be executed when dragging is started, if the function returns false the dragging is cancelled
                 strict: true // if true, the dragging will only occur if the element was directly clicked (so not it won't fire on a child element)
             };
             MK.extend(options, defaults);
@@ -164,44 +182,30 @@ if (!window.MK)
     }
 
     /**
-     * Pass any time format and the seconds will be returned
-     *
-     * E.g. parseLengthToSeconds(122) => 122
-     * E.g. parseLengthToSeconds('2:02') => 122
-     *
-     * @param string|number The length
-     * @return number The number of seconds
-     */
-    MK.parseLengthToSeconds = function(length) {
-        if (!length || length == '')
-            return 0;
-        else if (typeof(length) == 'number' || length.match(/^[0-9]+(\.[0-9]+)?$/))
-           return length;
-        else
-            return this.timeToSeconds(length);
-    }
-
-    /**
      * Convert a time notation to the number of seconds
      *
      * E.g.: timeToSeconds("2:02") => 122
      * E.g.: timeToSeconds("1:02:02") => 3722
      * E.g.: timeToSeconds("2:02") => 122
+	 * E.g.: timeToSeconds("122") => 122
+	 * E.g.: timeToSeconds("122.34") => 122.34
      *
      * @param time The time notation string
-     * @return numeric The number of seconds or -1 if invalid time was passed
+     * @return float The number of seconds or -1 if invalid time was passed
      */
     MK.timeToSeconds = function(time) {
-        var match = time.match(/^(([0-9])+:)?([0-9]+):([0-9]+)$/);
+		var match, seconds;
 
-        if (match) {
-            var seconds = (parseInt(match[3]) * 60) + parseInt(match[4]);
+        if ((match = time.match(/^(([0-9])+:)?([0-9]+):([0-9]+)$/))) {
+            seconds = (parseInt(match[3]) * 60) + parseInt(match[4]);
 
             if (match[2])
                 seconds += parseInt(match[2]) * 60*60;
 
             return seconds;
-        } else {
+		} else if (typeof(time) == 'number' || time.match(/^[0-9]+(\.[0-9]+)?$/)) { // allow microseconds
+				return parseInt(time);
+		} else {
             return -1;
         }
     }
@@ -215,25 +219,33 @@ if (!window.MK)
      * @return {String}
      */
     MK.secondsToTime = function(theSeconds) {
-        // Strip any milliseconds
-        var remainingSeconds = Math.round(theSeconds);
+		if (typeof(theSeconds) == 'number' || theSeconds.match(/^[0-9]+(\.[0-9]+)?$/)) {
+			// Strip any milliseconds
+			var remainingSeconds = Math.round(theSeconds);
 
-        var hours, minutes, seconds = 0;
+			var hours, minutes, seconds = 0;
 
-        if (remainingSeconds > 3600) {
-            hours = Math.floor(remainingSeconds / 3600);
-            remainingSeconds = remainingSeconds % 3600;
-        }
+			if (remainingSeconds > 3600) {
+				hours = Math.floor(remainingSeconds / 3600);
+				remainingSeconds = remainingSeconds % 3600;
+			}
 
-        if (remainingSeconds > 60)
-            minutes = Math.floor(remainingSeconds / 60);
+			if (remainingSeconds > 60)
+				minutes = Math.floor(remainingSeconds / 60);
 
-        seconds = remainingSeconds % 60;
+			seconds = remainingSeconds % 60;
 
-        var theTime = (hours > 0) ? hours + ":" : '';
-        theTime += (minutes > 0) ? minutes+ ":" : '0:';
-        theTime += (seconds < 10) ? "0" + seconds : seconds;
+			var theTime = (hours > 0) ? hours + ":" : '';
+			theTime += (minutes > 0) ? minutes+ ":" : '0:';
+			theTime += (seconds < 10) ? "0" + seconds : seconds;
 
-        return theTime;
+			return theTime;
+		} else if (typeof(theSeconds) == 'string' && theSeconds.match(/^(([0-9])+:)?([0-9]+):([0-9]+)$/)) {
+			return theSeconds;
+		} else {
+			return null;
+		}
+
+
     }
 })(window.MK);

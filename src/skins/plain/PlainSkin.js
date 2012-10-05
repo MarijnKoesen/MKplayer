@@ -149,7 +149,7 @@
                 {n: 'tr', a: {row: rowNumber-1}, c: [
                     {n: 'td', a: { class: 'r'}, t: rowNumber + "."},
                     {n: 'td', a: { class: 'n'}, t: song.getFullName()},
-                    {n: 'td', a: { class: 'd'}, t: song.getDuration()}
+                    {n: 'td', a: { class: 'd'}, t: MK.secondsToTime(song.getLength())}
                 ]}
             );
         },
@@ -172,7 +172,7 @@
             this.mainWindowAlbumLabel.innerHTML = song.album || "&nbsp;";
             this.mainWindowTitleLabel.innerHTML= song.title || "&nbsp;";
 
-            this.seeker.max = song.getDurationInSeconds();
+            this.seeker.max = song.getLength();
             this.seeker.value = 0;
 
             this.totalTimeLabel.innerHTML = song.length;
