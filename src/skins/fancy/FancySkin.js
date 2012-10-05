@@ -24,6 +24,9 @@
                 drag: this.handleScrollerDrag.bind(this)
             });
 
+            MK.draggable(this.playlistWindow, {strict: false, dragStart: this.handlePlaylistWindowMoveStart.bind(this)});
+            MK.draggable(this.mainWindow, {strict: true});
+
             // Update the scroller when we natively scroll the playlist
             this.playlistWindowContent.parentNode.addEventListener('scroll', this.handlePlaylistWindowScroll.bind(this));
         },
@@ -31,15 +34,12 @@
         _makeResizable: function() {
             // Make the window resizable
             MK.draggable(this.playlistWindow.getElementsByClassName('footer-right')[0], {
-                moveElement: false,
                 drag: this.handlePlaylistResize.bind(this)
             });
             MK.draggable(this.playlistWindow.getElementsByClassName('body-right')[0], {
-                moveElement: false,
                 drag: this.handlePlaylistResize.bind(this)
             });
             MK.draggable(this.playlistWindow.getElementsByClassName('footer-stretch')[0], {
-                moveElement: false,
                 drag: this.handlePlaylistResize.bind(this)
             });
         },
@@ -159,6 +159,14 @@
             this.stylePlayButton();
         },
 
+        redrawPlaylist: function() {
+            // First call the parent class
+            MK.PlainSkin.prototype.redrawPlaylist.call(this);
+
+            // Now update our custom scrollbar to reflect the new playlist length/height
+            this.handlePlaylistWindowScroll();
+        },
+
         /**
          * Update the native scroll position when the scroll handle is being dragged
          */
@@ -177,8 +185,26 @@
             this.scroller.style.top = Math.round(maxScrollerPos * scrollPercentage) + "px";
         },
 
+        handlePlaylistWindowMoveStart: function(event) {
+            // TODO implement this in the draggable helper with an 'allowed elements'
+            var allowedElements = ['body-left', 'header-left', 'header-stretch'];
+
+            for (var i = 0; i < allowedElements.length; i++) {
+                // Check if the mouse is over one of the allowed elements, if so, allow dragging, else deny it
+                var element = this.playlistWindow.getElementsByClassName(allowedElements[i])[0];
+                var elementPos = MK.getAbsolutePosition(element);
+
+                var xOk = (event.clientX > elementPos.x) && event.clientX < (elementPos.x + element.offsetWidth);
+                var yOk = event.clientY > elementPos.y && event.clientY < (elementPos.y + element.offsetHeight);
+                if (xOk && yOk)
+                    return true;
+            }
+
+            return false;
+        },
+
         /**
-         * Handle the drag event when the playlist is being resized
+         * Handle the resize event for the playlist, changing the width of the window and position of the scrollbar
          *
          * @param event
          */
@@ -196,7 +222,21 @@
                 var newHeight = mousePos.y - topLeftCorner.y;
                 if (newHeight > 100)
                     this.playlistWindow.style.height = newHeight + "px";
+
+                this.handlePlaylistWindowScroll();
             }
-        }
+
+            // Don't actually move the element
+            return false;
+        },
+
+		/**
+		 * Handle the seek-bar drag event
+		 *
+		 * @param event
+		 */
+		seek: function(event) {
+			this.player.seek(event.target.value);
+		}
     });
 })(MK);
