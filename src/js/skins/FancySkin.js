@@ -5,12 +5,12 @@
         this.scroller = null;
     }
 
-    MK.FancySkin.prototype = new MK.PlainSkin();
+    MK.FancySkin.prototype = new MK.BaseSkin();
 
     MK.extend(MK.FancySkin.prototype, {
         initializeElements: function() {
             // First call the parent implementation
-            MK.PlainSkin.prototype.initializeElements.call(this);
+            MK.BaseSkin.prototype.initializeElements.call(this);
 
             this._initializeScrollbar();
             this._makeResizable();
@@ -161,7 +161,7 @@
 
         redrawPlaylist: function() {
             // First call the parent class
-            MK.PlainSkin.prototype.redrawPlaylist.call(this);
+            MK.BaseSkin.prototype.redrawPlaylist.call(this);
 
             // Now update our custom scrollbar to reflect the new playlist length/height
             this.handlePlaylistWindowScroll();

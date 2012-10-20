@@ -1,3 +1,6 @@
+if (!window.MK)
+	window.MK = {};
+
 (function(MK) {
     MK.EventRegistry = function() {
         this.listeners = {};

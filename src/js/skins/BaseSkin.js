@@ -1,5 +1,5 @@
 (function(MK) {
-    MK.PlainSkin = function(player) {
+    MK.BaseSkin = function(player) {
         this.player = player;
 
         this.mainWindow = null;
@@ -20,7 +20,7 @@
         this.totalTimeLabel = null;
     }
 
-    MK.extend(MK.PlainSkin.prototype, {
+    MK.extend(MK.BaseSkin.prototype, {
         init: function() {
             this.createWindows();
             this.initializeElements();
@@ -387,7 +387,7 @@
          * Synchronize the styling of the play button with the current players state
          */
         stylePlayButton: function() {
-            // The plain skin doesn't need to style the play button, but sub skins do
+            // The base skin doesn't need to style the play button, but sub skins do
         },
 
         _disableElementSelection: function() {
