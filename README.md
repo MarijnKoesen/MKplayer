@@ -1,5 +1,7 @@
 ### MKplayer
 
+![Player screenshot](https://raw.github.com/MarijnKoesen/MKplayer/master/docs/player_screenshot.png)
+
 MKplayer is a HTML5 player written in javascript that enables you to listen to your music anywhere and anytime on any device!
 
 Because it's built to run in your webbrowser you can use your desktop at home or at work and use your smartphone when you're on the move.
