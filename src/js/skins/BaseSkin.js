@@ -91,7 +91,7 @@
                             {n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {change: this.seek.bind(this)}},
                             {n: 'div', a: {class: "totalTime"}, t: "0:00"}
                         ]},
-                        {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.05, class: "volumeSlider"}, e: {change: this.changeVolume.bind(this)}},
+                        {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.01, class: "volumeSlider"}, e: {change: this.changeVolume.bind(this)}},
 
                         {n: 'div', a: {class: "controls"}, c: [
                             {n: 'div', a: {class: "button previous"}, t: "Previous", e: { click: this.clickPrevious.bind(this)}},
@@ -286,6 +286,8 @@
                 this.player.setRepeatState(this.player.REPEAT_STATES.REPEAT_NONE);
 
             this.styleRepeatButton();
+
+			MK.Settings.set('repeat', this.player.repeatState);
         },
 
         /**
@@ -296,6 +298,8 @@
         clickShuffle: function(event) {
             this.player.shuffle = !this.player.shuffle;
             this.styleShuffleButton();
+
+			MK.Settings.set('shuffle', this.player.shuffle);
         },
 
         /**
@@ -344,8 +348,9 @@
          */
         changeVolume: function(event) {
             this.player.setVolume(event.target.value);
-        },
 
+			MK.Settings.set('volume', this.player.volume);
+        },
 
         /**
          * Automatically adjust the scroll position of the playlist to make sure the current playing song is visible

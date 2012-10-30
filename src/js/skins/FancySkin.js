@@ -74,7 +74,7 @@
                             {n: 'div', a: {class: "button seek-forward"}, e: { mousedown: this.clickSeekForward.bind(this)}},
                             {n: 'div', a: {class: "button next"}, e: { click: this.clickNext.bind(this)}},
                             {n: 'div', a: {class: "button volume"}, c: [
-                                {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.05, class: "volumeSlider"}, e: {change: this.changeVolume.bind(this)}},
+                                {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.01, class: "volumeSlider"}, e: {change: this.changeVolume.bind(this)}}
                             ]},
                             {n: 'div', a: {class: "button repeat"}, e: { click: this.clickRepeat.bind(this)}},
                             {n: 'div', a: {class: "button shuffle"}, e: { click: this.clickShuffle.bind(this)}}

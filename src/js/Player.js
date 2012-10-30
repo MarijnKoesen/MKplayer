@@ -32,10 +32,9 @@
         this.currentSong = null;
 
         this.playingState = this.PLAYING_STATES.STOPPED;
-        this.repeatState = this.REPEAT_STATES.REPEAT_ALL;
-        this.shuffle = false;
-
-        this.volume = 1; // min: 0, max: 1
+        this.repeatState = MK.Settings.get('repeat') || this.REPEAT_STATES.REPEAT_ALL;
+        this.shuffle = MK.Settings.get('shuffle') !== null ? MK.Settings.get('shuffle') : false;
+        this.volume = MK.Settings.get('volume') !== null ? MK.Settings.get('volume') : 1; // min: 0, max: 1
 
         this.eventRegistry = new MK.EventRegistry();
 
