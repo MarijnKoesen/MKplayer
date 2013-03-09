@@ -40,6 +40,14 @@ if (!window.MK)
                 dest[attr] = source[attr];
     }
 
+	MK.isArray = (function() {
+		var f = {}.toString, t = f.call([]);
+
+		return function(arg) {
+			return f.call(arg) == t;
+		}
+	})();
+
     /**
      * Make an element draggable
      *

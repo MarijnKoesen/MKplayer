@@ -63,7 +63,7 @@
 
                         {n: 'div', a: {class: "progress"}, c: [
                             {n: 'div', a: {class: "currentTime"}, t: "0:00"},
-                            {n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {change: this.seek.bind(this)}},
+                            {n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {mouseup: this.seek.bind(this), mousedown: function() { this.mouseIsDown=true; }}},
                             {n: 'div', a: {class: "totalTime"}, t: "0:00"}
                         ]},
 
@@ -92,8 +92,14 @@
          * @return object the DOM element for the playlist window
          */
         createPlaylistWindow: function() {
+			var dimensions = MK.Settings.get('playlist_size');
+			if (dimensions && dimensions.match(/^[0-9]+,[0-9]+$/))
+				dimensions = dimensions.split(',');
+			else
+				dimensions = ['',''];
+
             return MK.HtmlBuilder().build(
-                {n: 'div', a: {class: 'window playlist'}, c: [
+                {n: 'div', a: {class: 'window playlist', style: 'width:'+dimensions[0]+'px; height:'+dimensions[1]+'px'}, c: [
                     {n: 'div', a: {class: "header"}, c: [
                         {n: 'div', a: {class: "header-stretch"}},
                         {n: 'div', a: {class: "header-left"}},
@@ -226,6 +232,8 @@
                 this.handlePlaylistWindowScroll();
             }
 
+			MK.Settings.set('playlist_size', newWidth + ',' + newHeight);
+
             // Don't actually move the element
             return false;
         },
@@ -236,7 +244,8 @@
 		 * @param event
 		 */
 		seek: function(event) {
-			this.player.seek(event.target.value);
+			this.player.seek(parseFloat(event.target.value));
+			event.target.mouseIsDown = false;
 		}
     });
 })(MK);

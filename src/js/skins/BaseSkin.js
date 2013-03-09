@@ -88,7 +88,7 @@
 
                         {n: 'div', a: {class: "progress"}, c: [
                             {n: 'div', a: {class: "currentTime"}, t: "0:00"},
-                            {n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {change: this.seek.bind(this)}},
+							{n: 'input', a: {type: "range", value: 0, min: 0, max: 100, step: 0.1, class: "seek"}, e: {mouseup: this.seekRelease.bind(this), mousedown: this.seekClick.bind(this)}},
                             {n: 'div', a: {class: "totalTime"}, t: "0:00"}
                         ]},
                         {n: 'input', a: {type: "range", value: 1, min: 0, max: 1, step: 0.01, class: "volumeSlider"}, e: {change: this.changeVolume.bind(this)}},
@@ -172,8 +172,12 @@
             this.mainWindowAlbumLabel.innerHTML = song.album || "&nbsp;";
             this.mainWindowTitleLabel.innerHTML= song.title || "&nbsp;";
 
-            this.seeker.max = song.getLength();
-            this.seeker.value = 0;
+			this.seeker.max = song.getLength();
+
+			if (!this.seeker.mouseIsDown) {
+				// Avoid slider 'flickering', when dragging the scrollbar and playing a song at a start time
+				//this.seeker.value = 0;
+			}
 
             this.totalTimeLabel.innerHTML = MK.secondsToTime(song.length);
             this.stylePlayButton();
@@ -192,8 +196,10 @@
         },
 
         playerOnPlaying: function(param) {
-            // Update the seekbar while playing
-            this.seeker.value = param.currentTime;
+            // Update the seekbar while playing, except when dragging the seeker to avoid flickering
+			if (!this.seeker.mouseIsDown)
+				this.seeker.value = param.currentTime;
+
             this.currentTimeLabel.innerHTML = MK.secondsToTime(param.currentTime);
         },
 
@@ -325,24 +331,35 @@
         },
 
         clickSeekBackward: function() {
-            this.player.seek(this.player.audioEngine.currentTime - 5);
+            this.player.seekRelative(-5);
         },
 
         clickSeekForward: function() {
-            this.player.seek(this.player.audioEngine.currentTime + 5);
+			this.player.seekRelative(5);
         },
 
         /**
-         * Handle the seek bar drag event
+         * Handle the event that occurs when the seekbar was released after dragging
          *
          * @param event
          */
-        seek: function(event) {
+        seekRelease: function(event) {
             this.player.seek(event.target.value);
         },
 
+
+		/**
+		 * Handle the event that occurs when the seekbar was click to start the dragging
+		 *
+		 * @param event
+		 */
+		seekClick: function(event) {
+			this.mouseIsDown=true;
+		},
+
         /**
          * Handle the volume bar drag event
+		 * Handle the event that occurs when the seekbar was released after dragging
          *
          * @param event
          */

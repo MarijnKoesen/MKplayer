@@ -30,6 +30,7 @@
 
         // The current playing song object
         this.currentSong = null;
+		this.currentSongStartOffset = 0; // the number of (milli)seconds we started playing on
 
         this.playingState = this.PLAYING_STATES.STOPPED;
         this.repeatState = MK.Settings.get('repeat') || this.REPEAT_STATES.REPEAT_ALL;
@@ -70,37 +71,38 @@
             }
         },
 
-        /**
-         * Play the song at playlist position playlistIndexO
-         *
-         * @param playlistIndex int The playlist position to play
-         */
-        play: function(playlistIndex) {
-            if (!this.playlist.length)
-                return false;
+		/**
+		 * Play the song at playlist position playlistIndexO
+		 *
+		 * @param playlistIndex int The playlist position to play
+		 */
+		play: function(playlistIndex, startOffset) {
+			this.currentSongStartOffset = startOffset || 0;
 
-            if (playlistIndex === undefined)
-                playlistIndex = this.getCurrentSongIndex();
+			if (!this.playlist.length)
+				return false;
 
-            // First check if we got a valid song index passed
-            var newSong = this.playlist[playlistIndex];
-            if (newSong) {
-                // Song found, play the requested song
-                if (this.currentSong != newSong) {
-                    this.audioEngine.src = newSong.url;
-                    this.eventRegistry.broadcast('songChanged', newSong);
-                } else if (this.playingState != this.PLAYING_STATES.PAUSED) {
-                    // If we we're paused we don't want the song to start from the beginning
-                    this.audioEngine.currentTime = 0;
-                }
+			if (playlistIndex === undefined)
+				playlistIndex = this.getCurrentSongIndex();
 
-                this.currentSong = newSong;
-                this.playingState = this.PLAYING_STATES.PLAYING;
-                this.audioEngine.play();
+			// First check if we got a valid song index passed
+			var newSong = this.playlist[playlistIndex];
+			if (newSong) {
+				// Song found, play the requested song
+				if (this.playingState == this.PLAYING_STATES.PAUSED) {
+					// If we were paused we don't want the song to start from the beginning
+				} else {
+					this.audioEngine.src = newSong.url + (this.currentSongStartOffset ? '&start=' + startOffset : '');
+					this.eventRegistry.broadcast('songChanged', newSong);
+				}
 
-                this.eventRegistry.broadcast("play", this.currentSong);
-            }
-        },
+				this.currentSong = newSong;
+				this.playingState = this.PLAYING_STATES.PLAYING;
+				this.audioEngine.play();
+
+				this.eventRegistry.broadcast("play", this.currentSong);
+			}
+		},
 
         /**
          * Stop playback of the current song
@@ -211,11 +213,26 @@
         },
 
         seek: function(time) {
-            if (time >= 0)
-                this.audioEngine.currentTime = time;
-            else
-                this.audioEngine.currentTime = 0;
+			if (true) {
+				this.play(this.getCurrentSongIndex(), time);
+			} else {
+				if (time >= 0)
+					this.audioEngine.currentTime = time;
+				else
+					this.audioEngine.currentTime = 0;
+			}
         },
+
+		seekRelative: function(time) {
+			// left
+			time = time || 5;
+
+			var pos = this.currentSongStartOffset + this.audioEngine.currentTime + time;
+			if (pos < 0)
+				pos = 0;
+
+			this.seek(pos);
+		},
 
         /**
          * Get the index of the current song, this will be 0 if no song has ever been played
@@ -278,6 +295,7 @@
             this.audioEngine.addEventListener('ended', this._onSongEnded.bind(this));
 
             this._broadcastPlayingEvent();
+			this._bindKeyEvents();
         },
 
         /**
@@ -285,7 +303,7 @@
          */
         _broadcastPlayingEvent: function() {
             if (this.playingState == this.PLAYING_STATES.PLAYING) {
-                this.eventRegistry.broadcast('playing', {song: this.currentSong, currentTime: this.audioEngine.currentTime});
+                this.eventRegistry.broadcast('playing', {song: this.currentSong, currentTime: this.audioEngine.currentTime + this.currentSongStartOffset});
             }
 
             setTimeout(this._broadcastPlayingEvent.bind(this), 250);
@@ -334,6 +352,26 @@
             }
         },
 
+		_bindKeyEvents: function() {
+			document.addEventListener('keydown', this._onKeydown.bind(this));
+		},
+
+		_onKeydown: function(event) {
+			var seekAmount = event.shiftKey ? 30 : 0;
+			seekAmount += event.ctrlKey ? 120 : 0;
+
+			switch(event.keyCode) {
+				case 37:
+					// left:
+					this.seekRelative(-seekAmount);
+					break;
+
+				case 39:
+					// right
+					this.seekRelative(seekAmount);
+					break;
+			}
+		},
 
         /**
          * Private handler that is called when a playing song has ended
