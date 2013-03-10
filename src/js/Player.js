@@ -30,7 +30,7 @@
 
         // The current playing song object
         this.currentSong = null;
-		this.currentSongStartOffset = 0; // the number of (milli)seconds we started playing on
+        this.currentSongStartOffset = 0; // the number of (milli)seconds we started playing on
 
         this.playingState = this.PLAYING_STATES.STOPPED;
         this.repeatState = MK.Settings.get('repeat') || this.REPEAT_STATES.REPEAT_ALL;
@@ -71,38 +71,38 @@
             }
         },
 
-		/**
-		 * Play the song at playlist position playlistIndexO
-		 *
-		 * @param playlistIndex int The playlist position to play
-		 */
-		play: function(playlistIndex, startOffset) {
-			if (!this.playlist.length)
-				return false;
+        /**
+         * Play the song at playlist position playlistIndexO
+         *
+         * @param playlistIndex int The playlist position to play
+         */
+        play: function(playlistIndex, startOffset) {
+            if (!this.playlist.length)
+                return false;
 
-			if (playlistIndex === undefined)
-				playlistIndex = this.getCurrentSongIndex();
+            if (playlistIndex === undefined)
+                playlistIndex = this.getCurrentSongIndex();
 
-			// First check if we got a valid song index passed
-			var newSong = this.playlist[playlistIndex];
-			if (newSong) {
-				// Song found, play the requested song
-				if (this.playingState == this.PLAYING_STATES.PAUSED) {
-					// If we were paused we don't want the song to start from the beginning
-				} else {
-					this.currentSongStartOffset = startOffset || 0;
+            // First check if we got a valid song index passed
+            var newSong = this.playlist[playlistIndex];
+            if (newSong) {
+                // Song found, play the requested song
+                if (this.playingState == this.PLAYING_STATES.PAUSED) {
+                    // If we were paused we don't want the song to start from the beginning
+                } else {
+                    this.currentSongStartOffset = startOffset || 0;
 
-					this.audioEngine.src = newSong.url + (this.currentSongStartOffset ? '&start=' + startOffset : '');
-					this.eventRegistry.broadcast('songChanged', newSong);
-				}
+                    this.audioEngine.src = newSong.url + (this.currentSongStartOffset ? '&start=' + startOffset : '');
+                    this.eventRegistry.broadcast('songChanged', newSong);
+                }
 
-				this.currentSong = newSong;
-				this.playingState = this.PLAYING_STATES.PLAYING;
-				this.audioEngine.play();
+                this.currentSong = newSong;
+                this.playingState = this.PLAYING_STATES.PLAYING;
+                this.audioEngine.play();
 
-				this.eventRegistry.broadcast("play", this.currentSong);
-			}
-		},
+                this.eventRegistry.broadcast("play", this.currentSong);
+            }
+        },
 
         /**
          * Stop playback of the current song
@@ -213,26 +213,26 @@
         },
 
         seek: function(time) {
-			if (true) {
-				this.play(this.getCurrentSongIndex(), time);
-			} else {
-				if (time >= 0)
-					this.audioEngine.currentTime = time;
-				else
-					this.audioEngine.currentTime = 0;
-			}
+            if (true) {
+                this.play(this.getCurrentSongIndex(), time);
+            } else {
+                if (time >= 0)
+                    this.audioEngine.currentTime = time;
+                else
+                    this.audioEngine.currentTime = 0;
+            }
         },
 
-		seekRelative: function(time) {
-			// left
-			time = time || 5;
+        seekRelative: function(time) {
+            // left
+            time = time || 5;
 
-			var pos = this.currentSongStartOffset + this.audioEngine.currentTime + time;
-			if (pos < 0)
-				pos = 0;
+            var pos = this.currentSongStartOffset + this.audioEngine.currentTime + time;
+            if (pos < 0)
+                pos = 0;
 
-			this.seek(pos);
-		},
+            this.seek(pos);
+        },
 
         /**
          * Get the index of the current song, this will be 0 if no song has ever been played
@@ -295,7 +295,7 @@
             this.audioEngine.addEventListener('ended', this._onSongEnded.bind(this));
 
             this._broadcastPlayingEvent();
-			this._bindKeyEvents();
+            this._bindKeyEvents();
         },
 
         /**
@@ -313,7 +313,7 @@
          * Private: Parse the XmlHttpRequest and load all the songs
          *
          * @param array of song objects
-		 */
+         */
         _doAppendPlaylist: function (songs) {
             // When loading a playlist of say 100k items it would take some time, in the meantime the browser would 'hang'
             // if we were to load a playlist in one go.
@@ -352,35 +352,35 @@
             }
         },
 
-		_bindKeyEvents: function() {
-			document.addEventListener('keydown', this._onKeydown.bind(this));
-		},
+        _bindKeyEvents: function() {
+            document.addEventListener('keydown', this._onKeydown.bind(this));
+        },
 
-		_onKeydown: function(event) {
-			var seekAmount = event.shiftKey ? 30 : 5;
-			seekAmount += event.ctrlKey ? 120 : 0;
+        _onKeydown: function(event) {
+            var seekAmount = event.shiftKey ? 30 : 5;
+            seekAmount += event.ctrlKey ? 120 : 0;
 
-			switch(event.keyCode) {
-				case 37:
-					// left:
-					this.seekRelative(-seekAmount);
-					break;
+            switch(event.keyCode) {
+                case 37:
+                    // left:
+                    this.seekRelative(-seekAmount);
+                    break;
 
-				case 39:
-					// right
-					this.seekRelative(seekAmount);
-					break;
+                case 39:
+                    // right
+                    this.seekRelative(seekAmount);
+                    break;
 
-				case 32:
-					// space
-					if (this.playingState == this.PLAYING_STATES.PLAYING)
-						this.pause();
-					else
-						this.play();
+                case 32:
+                    // space
+                    if (this.playingState == this.PLAYING_STATES.PLAYING)
+                        this.pause();
+                    else
+                        this.play();
 
-					break;
-			}
-		},
+                    break;
+            }
+        },
 
         /**
          * Private handler that is called when a playing song has ended
