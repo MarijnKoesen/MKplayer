@@ -77,8 +77,6 @@
 		 * @param playlistIndex int The playlist position to play
 		 */
 		play: function(playlistIndex, startOffset) {
-			this.currentSongStartOffset = startOffset || 0;
-
 			if (!this.playlist.length)
 				return false;
 
@@ -92,6 +90,8 @@
 				if (this.playingState == this.PLAYING_STATES.PAUSED) {
 					// If we were paused we don't want the song to start from the beginning
 				} else {
+					this.currentSongStartOffset = startOffset || 0;
+
 					this.audioEngine.src = newSong.url + (this.currentSongStartOffset ? '&start=' + startOffset : '');
 					this.eventRegistry.broadcast('songChanged', newSong);
 				}
@@ -357,7 +357,7 @@
 		},
 
 		_onKeydown: function(event) {
-			var seekAmount = event.shiftKey ? 30 : 0;
+			var seekAmount = event.shiftKey ? 30 : 5;
 			seekAmount += event.ctrlKey ? 120 : 0;
 
 			switch(event.keyCode) {
@@ -369,6 +369,15 @@
 				case 39:
 					// right
 					this.seekRelative(seekAmount);
+					break;
+
+				case 32:
+					// space
+					if (this.playingState == this.PLAYING_STATES.PLAYING)
+						this.pause();
+					else
+						this.play();
+
 					break;
 			}
 		},
